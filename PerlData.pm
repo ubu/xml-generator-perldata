@@ -1059,10 +1059,53 @@ produce non-well-formed XML.
 
 =item * B<bindattrs> (optional)
 
-When set to a defined value, this option tells the generator to bind
-attributes to the same namespace as element that contains them. By default
+When set to a defined value, this option tells the generator to bind attributes to the same namespace as element that contains them. By default
 attributes will be unbound and unprefixed. 
 
+=item * B<processing_instructions> (optional)
+
+This option provides a way to include XML processing instructions events into the generated stream before the root element is emitted. The value of this key can be either a hash reference or an array reference of hash references. For example, when connected to L<XML::SAX::Writer>:
+
+    $pd->new( Handler => $writer_instance,
+              rootname => 'document',
+              processing_instructions => {
+                'xml-stylesheet' => {
+                     href => '/path/to/stylesheet.xsl',
+                     type => 'text/xml',
+                 },
+              });
+
+would generate
+
+  <?xml version="1.0"?>
+  <?xml-stylesheet href="/path/to/stylesheet.xsl" type="text/xsl" ?>
+  <document>
+    ...
+    
+Where multiple processing instructions will have the same target and/or where the document order of those PIs matter, an array reference should be used instead. For example:
+
+    $pd->new( Handler => $writer_instance,
+              rootname => 'document',
+              processing_instructions => [
+                'xml-stylesheet' => {
+                    href => '/path/to/stylesheet.xsl',
+                    type => 'text/xml',
+                },
+                'xml-stylesheet' => {
+                    href => '/path/to/second/stylesheet.xsl',
+                    type => 'text/xml',
+                }
+
+           ]);
+
+would produce:
+
+  <?xml version="1.0"?>
+  <?xml-stylesheet href="/path/to/stylesheet.xsl" type="text/xsl" ?>
+  <?xml-stylesheet href="/path/to/second/stylesheet.xsl" type="text/xsl" ?>
+  <document>
+    ...
+                  
 =back
 
 =head1 PROCESSING METHODS
