@@ -53,6 +53,20 @@ sub init {
             $self->{Namespaces}->{"$uri"} = $args{namespaces}->{"$uri"};
         }
     }
+    
+    # allow perlified PIs
+    if ( defined( $args{processing_instructions} )) {
+        $self->{ProcessingInstructions} = [];
+        
+        if ( ref( $args{processing_instructions} ) eq 'ARRAY' ) {
+            $self->{ProcessingInstructions} = $args{processing_instructions};
+        }
+        elsif ( ref( $args{processing_instructions} ) eq 'HASH' ) {
+            foreach my $k ( keys( %{$args{processing_instructions}} )) {
+                push @{$self->{ProcessingInstructions}}, ( $k => $args{processing_instructions}->{$k} );
+            }
+        }
+    }
 
     # let 'em change handlers if they want.
     if ( defined $args{Handler} ) {
@@ -105,6 +119,14 @@ sub parse_start {
     $self->init( @_ ) if scalar @_;
 
     $self->start_document( {} );
+    
+    if ( defined( $self->{ProcessingInstructions} ) && scalar( @{$self->{ProcessingInstructions}}) > 0 ) {
+        my $pis = delete $self->{ProcessingInstructions};
+        
+        while ( my ( $target, $data ) = ( splice( @$pis, 0, 2)) ) {
+            $self->parse_pi( $target, $data );
+        }
+    }  
 
     unless ( defined $self->{SkipRoot} ) {
         $self->start_element( $self->_start_details( $self->{RootName} ) );
@@ -657,6 +679,32 @@ sub skipelements {
     return wantarray ? @skippers_out : \@skippers_out;
 }
 
+#XXX
+sub parse_pi {
+    my $self = shift;
+    my ( $target, $data_in ) = @_;
+    
+    my $data_out = '';
+    
+    my $ref = $self->get_type( $data_in );
+    
+    if ( $ref eq 'SCALAR' ) {
+        $data_out = $$data_in;
+    }
+    elsif ( $ref eq 'ARRAY' ) {
+        $data_out = join ' ', @{$data_in};
+    }
+    elsif ( $ref eq 'HASH' ) {
+        foreach my $k (keys( %{$data_in} )) {
+            $data_out .= qq|$k="| . $data_in->{$k} . qq|" |;
+        }
+    }
+    else {
+        $data_out = $data_in;    
+    }
+    
+    $self->processing_instruction({ Target => $target, Data => $data_out });
+}
 
 ###
 # Convenience helpers to make 'stream style' friendly
@@ -1595,7 +1643,7 @@ Kip Hampton, khampton@totalcinema.com
 
 =head1 COPYRIGHT
 
-(c) Kip Hampton, 2002, All Rights Reserved.
+(c) Kip Hampton, 2002-2010, All Rights Reserved.
 
 =head1 LICENCE
 
