@@ -55,11 +55,11 @@ sub init {
             $self->{Namespaces}->{"$uri"} = $args{namespaces}->{"$uri"};
         }
     }
-    
+
     # allow perlified PIs
     if ( defined( $args{processing_instructions} )) {
         $self->{ProcessingInstructions} = [];
-        
+
         if ( ref( $args{processing_instructions} ) eq 'ARRAY' ) {
             $self->{ProcessingInstructions} = $args{processing_instructions};
         }
@@ -74,8 +74,6 @@ sub init {
     if ( defined $args{Handler} ) {
         $self->set_handler( $args{Handler} );
     }
-
-
 
     if ( defined( $args{attrmap} ) ) {
         $self->{Attrmap} = {};
@@ -102,7 +100,7 @@ sub init {
     $self->{Charmap} ||= {};
 
     # Skipelements:
-    # Makes sense from an interface standpoint for the user 
+    # Makes sense from an interface standpoint for the user
     # to pass an array ref, but it makes it more efficient to
     # implement if its a hash ref. Let's pull a little juju.
 
@@ -121,14 +119,14 @@ sub parse_start {
     $self->init( @_ ) if scalar @_;
 
     $self->start_document( {} );
-    
+
     if ( defined( $self->{ProcessingInstructions} ) && scalar( @{$self->{ProcessingInstructions}}) > 0 ) {
         my $pis = delete $self->{ProcessingInstructions};
-        
+
         while ( my ( $target, $data ) = ( splice( @$pis, 0, 2)) ) {
             $self->parse_pi( $target, $data );
         }
-    }  
+    }
 
     unless ( defined $self->{SkipRoot} ) {
         $self->start_element( $self->_start_details( $self->{RootName} ) );
@@ -141,7 +139,7 @@ sub parse_end {
     unless ( defined $self->{SkipRoot} ) {
         $self->end_element( $self->_end_details( $self->{RootName} ) );
     }
-    
+
     foreach my $uri ( keys( %{$self->{DeclaredNamespaces}} )) {
         next if $uri eq $NS_XMLNS;
         next if $uri eq $NS_XML;
@@ -207,10 +205,9 @@ sub hashref2SAX {
 ELEMENT: foreach my $key (keys (%{$hashref} )) {
          my $value = $hashref->{$key};
          my $element_name = $self->_keymapped_name( $key );
-             
+
          next if defined $self->{Skipelements}->{$element_name};
 
-       
          if ( defined $self->{_Parents}->[-1] and defined $self->{Attrmap}->{$self->{_Parents}->[-1]} ) {
              foreach my $name ( @{$self->{Attrmap}->{$self->{_Parents}->[-1]}} ) {
                  next ELEMENT if $name eq $element_name;
@@ -242,7 +239,7 @@ ELEMENT: foreach my $key (keys (%{$hashref} )) {
                         if ( ref( $value->{$child} ) ) {
                            warn "Cannot use a reference value " . $value->{$child} . " for key '$child' as XML attribute\n";
                            next ATTR;
-                        } 
+                        }
 
                        $attrs{$name} = $value->{$child};
                     }
@@ -287,9 +284,7 @@ ELEMENT: for ( $i = 0; $i < @{$arrayref}; $i++ ) {
             $element_name = $temp_name;
         }
 
-
         next if defined $self->{Skipelements}->{$element_name};
-       
 
         my $type = $self->get_type( $arrayref->[$i] );
 
@@ -312,11 +307,11 @@ ELEMENT: for ( $i = 0; $i < @{$arrayref}; $i++ ) {
                            warn "Cannot use a reference value " . $value->{$child} . " for key '$child' as XML attribute\n";
                            next ATTR;
                         }
-             
+
                        $attrs{$name} = $value->{$child};
                     }
                 }
-            }   
+            }
             $self->start_element( $self->_start_details( $element_name, \%attrs ) );
             push @{$self->{_Parents}}, $element_name;
             $self->hashref2SAX( $arrayref->[$i] );
@@ -325,7 +320,7 @@ ELEMENT: for ( $i = 0; $i < @{$arrayref}; $i++ ) {
         }
         else {
             $self->start_element( $self->_start_details( $element_name ) );
-            $self->characters( {Data => $arrayref->[$i]} ); 
+            $self->characters( {Data => $arrayref->[$i]} );
             $self->end_element( $self->_end_details( $element_name ) );
         }
     }
@@ -342,7 +337,7 @@ sub get_type {
         }
         else {
             # we were passed an object, yuk.
-            # props to barrie slaymaker for the tip here... mine was much fuglier. ;-) 
+            # props to barrie slaymaker for the tip here... mine was much fuglier. ;-)
             if ( UNIVERSAL::isa( $wtf, "HASH" ) ) {
                 return 'HASH';
             }
@@ -397,7 +392,7 @@ sub namespacemap {
             }
         }
     }
-        
+
     return wantarray ? %{$self->{Namespacemap}} : $self->{Namespacemap};
 }
 
@@ -424,7 +419,7 @@ sub delete_namespacemap {
             foreach my $uri ( keys( %{$self->{Namespacemap}} )) {
                 my $i;
                 for ($i = 0; $i < scalar @{$self->{Namespacemap}->{$uri}}; $i++) {
-                   splice @{$self->{Namespacemap}->{$uri}}, $i, 1 if $self->{Namespacemap}->{$uri}->[$i] eq $name; 
+                   splice @{$self->{Namespacemap}->{$uri}}, $i, 1 if $self->{Namespacemap}->{$uri}->[$i] eq $name;
                 }
                 delete $self->{Namespacemap}->{$uri} unless scalar @{$self->{Namespacemap}->{$uri}} > 0;
             }
@@ -442,7 +437,7 @@ sub attrmap {
         else {
             %attrmap = @_;
         }
-        
+
         while ( my ($k, $v) = each( %attrmap )) {
             if ( ref( $v ) ) {
                 $self->{Attrmap}->{$k} = $v;
@@ -452,7 +447,7 @@ sub attrmap {
             }
         }
     }
-        
+
     return wantarray ? %{$self->{Attrmap}} : $self->{Attrmap};
 }
 
@@ -463,7 +458,7 @@ sub add_attrmap {
         if ( ref( $_[0] )) {
             %attrmap = %{$_[0]};
         }
-        else { 
+        else {
             %attrmap = @_;
         }
 
@@ -475,21 +470,20 @@ sub add_attrmap {
                 $self->{Attrmap}->{$k} = [ $v ];
             }
         }
-    
     }
 }
 
 sub delete_attrmap {
     my $self = shift;
-    my @mapped;  
+    my @mapped;
     if ( scalar( @_ ) > 0 ) {
         if ( ref( $_[0] )) {
-            @mapped = @{$_[0]};  
+            @mapped = @{$_[0]};
         }
         else {
-            @mapped = @_;  
+            @mapped = @_;
         }
-        foreach my $name ( @mapped ) {  
+        foreach my $name ( @mapped ) {
             delete $self->{Attrmap}->{$name} if $self->{Attrmap}->{$name};
         }
     }
@@ -505,7 +499,7 @@ sub charmap {
         else {
             %charmap = @_;
         }
-        
+
         while ( my ($k, $v) = each( %charmap )) {
             if ( ref( $v ) ) {
                 $self->{Charmap}->{$k} = $v;
@@ -515,7 +509,7 @@ sub charmap {
             }
         }
     }
-        
+
     return wantarray ? %{$self->{Charmap}} : $self->{Charmap};
 }
 
@@ -526,7 +520,7 @@ sub add_charmap {
         if ( ref( $_[0] )) {
             %charmap = %{$_[0]};
         }
-        else { 
+        else {
             %charmap = @_;
         }
 
@@ -538,21 +532,20 @@ sub add_charmap {
                 $self->{Charmap}->{$k} = [ $v ];
             }
         }
-    
     }
 }
 
 sub delete_charmap {
     my $self = shift;
-    my @mapped;  
+    my @mapped;
     if ( scalar( @_ ) > 0 ) {
         if ( ref( $_[0] )) {
-            @mapped = @{$_[0]};  
+            @mapped = @{$_[0]};
         }
         else {
-            @mapped = @_;  
+            @mapped = @_;
         }
-        foreach my $name ( @mapped ) {  
+        foreach my $name ( @mapped ) {
             delete $self->{Charmap}->{$name} if $self->{Charmap}->{$name};
         }
     }
@@ -565,7 +558,7 @@ sub add_keymap {
         if ( ref( $_[0] )) {
             %keymap = %{$_[0]};
         }
-        else { 
+        else {
             %keymap = @_;
         }
 
@@ -582,7 +575,7 @@ sub delete_keymap {
         if ( ref( $_[0] )) {
             @mapped = @{$_[0]};
         }
-        else {  
+        else {
             @mapped = @_;
         }
         foreach my $name ( @mapped ) {
@@ -603,7 +596,7 @@ sub add_skipelements {
         }
         foreach my $name ( @skippers ) {
             $self->{Skipelements}->{$name} = 1;
-        }  
+        }
     }
 }
 
@@ -619,13 +612,13 @@ sub delete_skipelements {
         }
         foreach my $name ( @skippers ) {
             delete $self->{Skipelements}->{$name} if $self->{Skipelements}->{$name};
-        }  
+        }
     }
 }
 
 sub rootname {
     my ($self, $rootname) = @_;
-    
+
     # ubu: add a check to warn them if the processing has already begun?
     if ( defined $rootname ) {
         $self->{RootName} = $rootname;
@@ -658,7 +651,7 @@ sub defaultname {
     }
     return $self->{DefaultElementName};
 }
-    
+
 sub keymap {
     my $self = shift;
     my %keymap;
@@ -686,9 +679,9 @@ sub skipelements {
             @skippers = @_;
         }
         my %skippers = map { $_, 1} @skippers;
-        $self->{Skipelements} = \%skippers;  
+        $self->{Skipelements} = \%skippers;
     }
-    
+
     my @skippers_out = keys %{$self->{Skipelements}} || ();
 
     return wantarray ? @skippers_out : \@skippers_out;
@@ -698,11 +691,11 @@ sub skipelements {
 sub parse_pi {
     my $self = shift;
     my ( $target, $data_in ) = @_;
-    
+
     my $data_out = '';
-    
+
     my $ref = $self->get_type( $data_in );
-    
+
     if ( $ref eq 'SCALAR' ) {
         $data_out = $$data_in;
     }
@@ -715,9 +708,9 @@ sub parse_pi {
         }
     }
     else {
-        $data_out = $data_in;    
+        $data_out = $data_in;
     }
-    
+
     $self->processing_instruction({ Target => $target, Data => $data_out });
 }
 
@@ -759,7 +752,7 @@ sub _keymapped_name {
     }
     elsif ( defined $self->{Keymap}->{'*'} ) {
         my $temp_name = $self->{Keymap}->{'*'};
-         
+
         if ( ref( $temp_name ) eq 'CODE' ) {
             $element_name = &{$temp_name}( $name );
         }
@@ -792,7 +785,7 @@ sub _start_details {
 
         my $key_uri = $uri || "";
         $real_attrs{"\{$key_uri\}$lname"} = {
-                                             Name         => $qname, 
+                                             Name         => $qname,
                                              LocalName    => $lname,
                                              Prefix       => $prefix,
                                              NamespaceURI => $uri,
@@ -809,8 +802,8 @@ sub _start_details {
             my $key_uri;
             my $ns_uri;
 
-            # this, like the Java version of SAX2, explicitly follows production 5.2 of the 
-            # W3C Namespaces rec.-- specifically: 
+            # this, like the Java version of SAX2, explicitly follows production 5.2 of the
+            # W3C Namespaces rec.-- specifically:
             # http://www.w3.org/TR/1999/REC-xml-names-19990114/#defaulting
 
             if ( $self->{Namespaces}->{$uri} eq '#default' ) {
@@ -827,12 +820,10 @@ sub _start_details {
                 #$key_uri = "";
                 $key_uri = $NS_XMLNS;
                 $ns_uri = $NS_XMLNS;
-
-                
-            } 
+            }
             $real_attrs{"\{$key_uri\}$lname"} = {
                                             Name         => $qname,
-                                            LocalName    => $lname,  
+                                            LocalName    => $lname,
                                             Prefix       => $prefix,
                                             NamespaceURI => $ns_uri,
                                             Value        => $uri };
@@ -861,7 +852,6 @@ sub _start_details {
         push @{$self->{InScopeNamespaceStack}}, [$uri, $prefix];
     }
 
-    
     return \%element;
 }
 
@@ -872,7 +862,7 @@ sub _end_details {
     my %element = (LocalName    => $lname,
                    Name         => $qname,
                    Prefix       => $prefix,
-                   NamespaceURI => $uri,   
+                   NamespaceURI => $uri,
                   );
 
     if ( defined $uri and grep { $element_name eq $_ } @{$self->{Namespacemap}->{$uri}} ) {
@@ -911,9 +901,9 @@ sub _namespace_fixer {
             if ( $prefix ) {
                 $qname = $prefix . ':' . $lname;
             }
-        } 
+        }
     }
-    $qname ||= $lname; 
+    $qname ||= $lname;
     return ($uri, $prefix, $qname, $lname);
 }
 
@@ -923,13 +913,12 @@ sub _name_fixer {
     # UNICODE WARNING
     $name =~ s|^[^a-zA-Z_:]{1}|_|g;
     $name =~ tr|a-zA-Z0-9._:-|_|c;
-    
+
     return $name;
 }
 
 1;
 __END__
-# Below is the stub of documentation for your module. You better edit it!
 
 =head1 NAME
 
@@ -953,8 +942,8 @@ XML::Generator::PerlData - Perl extension for generating SAX2 events from nested
 
   # generate XML from the data structure...
   $driver->parse( $hash_ref );
-  
-  
+
+
   ## Or, Stream style ##
 
   use XML::Generator::PerlData;
@@ -962,10 +951,10 @@ XML::Generator::PerlData - Perl extension for generating SAX2 events from nested
 
   # create an instance of a handler class to forward events to...
   my $handler = SomeSAX2HandlerOrFilter->new();
-  
+
   # create an instance of the PerlData driver...
   my $driver  = XML::Generator::PerlData->new( Handler => $handler );
-  
+
   # start the event stream...
   $driver->parse_start();
 
@@ -978,11 +967,11 @@ XML::Generator::PerlData - Perl extension for generating SAX2 events from nested
   # end the event stream...
   $driver->parse_end();
 
-and you're done...  
+and you're done...
 
 =head1 DESCRIPTION
 
-XML::Generator::PerlData provides a simple way to generate SAX2 events 
+XML::Generator::PerlData provides a simple way to generate SAX2 events
 from nested Perl data structures, while providing finer-grained control
 over the resulting document streams.
 
@@ -992,13 +981,13 @@ In a nutshell, 'simple style' is best used for those cases where you have a a si
 Perl data structure that you want to convert to XML as quickly and painlessly as possible. 'Stream
 style' is more useful for cases where you are receiving chunks of data (like from a DBI handle)
 and you want to process those chunks as they appear. See B<PROCESSING METHODS> for more info about
-how each style works. 
+how each style works.
 
 =head1 CONSTRUCTOR METHOD AND CONFIGURATION OPTIONS
 
-=over 4
+=head2 new
 
-=item B<new> (class constructor)
+(class constructor)
 
 B<Accepts:> An optional hash of configuration options.
 
@@ -1011,12 +1000,14 @@ there is a small host of options available to help ensure that the SAX event str
 (and by extension the XML documents) that are created from the data structures you
 pass are in just the format that you want.
 
-=head2 OPTIONS
+=head3 Options
+
+=over 4
 
 =item * B<Handler> (required)
 
 XML::Generator::PerlData is a SAX Driver/Generator. As such, it
-needs a SAX Handler or Filter class to forward its events to. The value for this 
+needs a SAX Handler or Filter class to forward its events to. The value for this
 option must be an instance of a SAX2-aware Handler or Filter.
 
 =item * B<rootname> (optional)
@@ -1025,7 +1016,7 @@ Sets the name of the top-level (root) element. The default is 'document'.
 
 =item * B<defaultname> (optional)
 
-Sets the default name to be used for elements when no other logical name 
+Sets the default name to be used for elements when no other logical name
 is available (think lists-of-lists). The default is 'default'.
 
 =item * B<keymap> (optional)
@@ -1036,21 +1027,21 @@ contains a set of keyname->element name mappings for the current process.
 
 =item * B<skipelements> (optional)
 
-Passed in as an array reference, this option sets the internal list of keynames 
-that will be skipped over during processing. Note that any descendant structures 
+Passed in as an array reference, this option sets the internal list of keynames
+that will be skipped over during processing. Note that any descendant structures
 belonging to those keys will also be skipped.
 
 =item * B<attrmap> (optional)
 
 Used to determine which 'children' of a given hash key/element-name will
-be forwarded as attributes of that element rather than as child elements. 
+be forwarded as attributes of that element rather than as child elements.
 
 (see CAVEATS for a discussion of the limitations of this method.)
 
 =item * B<namespaces> (optional)
 
 Sets the internal list of namespace/prefix pairs for the current process. It takes
-the form of a hash, where the keys are the URIs of the given namespace and the 
+the form of a hash, where the keys are the URIs of the given namespace and the
 values are the associated prefix.
 
 To set a default (unprefixed) namespace, set the prefix to '#default'.
@@ -1058,7 +1049,7 @@ To set a default (unprefixed) namespace, set the prefix to '#default'.
 =item * B<namespacemap> (optional)
 
 Sets which elements in the result will be bound to which declared namespaces. It
-takes the form of a hash of key/value pairs where the keys are one of the declared 
+takes the form of a hash of key/value pairs where the keys are one of the declared
 namespace URIs that are relevant to the current process and the values are either
 single key/element names or an array reference of key/element names.
 
@@ -1066,16 +1057,16 @@ single key/element names or an array reference of key/element names.
 
 When set to a defined value, this option blocks the generator from adding
 the top-level root element when parse() or parse_start() and parse_end()
-are called. 
+are called.
 
-I<Do not> use this option unless you absolutely sure you know what you 
+I<Do not> use this option unless you absolutely sure you know what you
 are doing and why, since the resulting event stream will most likely
 produce non-well-formed XML.
 
 =item * B<bindattrs> (optional)
 
 When set to a defined value, this option tells the generator to bind attributes to the same namespace as element that contains them. By default
-attributes will be unbound and unprefixed. 
+attributes will be unbound and unprefixed.
 
 =item * B<processing_instructions> (optional)
 
@@ -1096,7 +1087,7 @@ would generate
   <?xml-stylesheet href="/path/to/stylesheet.xsl" type="text/xsl" ?>
   <document>
     ...
-    
+
 Where multiple processing instructions will have the same target and/or where the document order of those PIs matter, an array reference should be used instead. For example:
 
     $pd->new( Handler => $writer_instance,
@@ -1120,14 +1111,14 @@ would produce:
   <?xml-stylesheet href="/path/to/second/stylesheet.xsl" type="text/xsl" ?>
   <document>
     ...
-                  
+
 =back
 
 =head1 PROCESSING METHODS
 
-=over 4
+=head2 Simple style processing
 
-=head2 SIMPLE STYLE PROCESSING
+=over 4
 
 =item B<parse>
 
@@ -1139,7 +1130,7 @@ The core method used during 'simple style' processing, this method accepts a ref
 to a Perl data structure and, based on the options passed, produces a stream of SAX events
 that can be used to transform that structure into XML. The optional second argument is
 a hash of config options identical to those detailed in the OPTIONS section of the
-the new() constructor description. 
+the new() constructor description.
 
 B<Examples:>
 
@@ -1153,8 +1144,11 @@ B<Examples:>
 
   $pd->parse( $my_arrayref, keymap => { default => ['foo', 'bar', 'baz'] } );
 
+=back
 
-=head2 STREAM STYLE PROCESSING
+=head2 Stream style processing
+
+=over 4
 
 =item B<parse_start>
 
@@ -1162,7 +1156,7 @@ B<Accepts:> An optional hash of config options.
 
 B<Returns:> [none]
 
-Starts the SAX event stream and (unless configured not to) 
+Starts the SAX event stream and (unless configured not to)
 fires the event the top-level root element. The optional argument is
 a hash of config options identical to those detailed in the OPTIONS section of the
 the new() constructor description.
@@ -1183,7 +1177,7 @@ fires the event to close the top-level root element.
 
 B<Example:>
 
-  $pd->parse_end(); 
+  $pd->parse_end();
 
 =item B<parse_chunk>
 
@@ -1211,7 +1205,7 @@ B<Examples:>
 =head1 CONFIGURATION METHODS
 
 All config options can be passed to calls to the new() constructor using the
-typical "hash of named properties" syntax. The methods below offer direct 
+typical "hash of named properties" syntax. The methods below offer direct
 access to the individual options (or ways to add/remove the smaller definitions
 contained by those options).
 
@@ -1233,12 +1227,12 @@ B<Returns:> The current root name.
 
 When called with an argument, this method sets the name of the top-level (root) element. It
 always returns the name of the current (or new) root name.
- 
-B<Examples:> 
 
-  $pd->rootname( $new_name );   
+B<Examples:>
 
-  my $current_root = $pd->rootname();   
+  $pd->rootname( $new_name );
+
+  my $current_root = $pd->rootname();
 
 =item B<defaultname>
 
@@ -1246,14 +1240,14 @@ B<Accepts:> A string or [none]
 
 B<Returns:> The current default element name.
 
-When called with an argument, this method sets the name of the default element. It      
+When called with an argument, this method sets the name of the default element. It
 always returns the name of the current (or new) default name.
 
-B<Examples:> 
+B<Examples:>
 
-  $pd->defaultname( $new_name );   
+  $pd->defaultname( $new_name );
 
-  my $current_default = $pd->defaultname();   
+  my $current_default = $pd->defaultname();
 
 =item B<keymap>
 
@@ -1261,7 +1255,7 @@ B<Accepts:> A hash (or hash reference) containing a series of keyname->elementna
 
 B<Returns:> The current keymap hash (as a plain hash, or hash reference depending on caller context).
 
-When called with a hash (hash reference) as its argument, this method sets/resets the entire internal 
+When called with a hash (hash reference) as its argument, this method sets/resets the entire internal
 keyname->elementname mappings definitions (where 'keyname' means the name of a given
 key in the hash and 'elementname' is the name used when firing SAX events for that key).
 
@@ -1276,25 +1270,25 @@ be applied to all elements that do have an explict mapping configured.
 To add new mappings or remove existing ones without having to reset the whole list of
 mappings, see add_keymap() and delete_keymap() respectively.
 
-If your are using "stream style" processing, this method should be used with caution since 
+If your are using "stream style" processing, this method should be used with caution since
 altering this mapping during processing may result in not-well-formed XML.
 
-B<Examples:> 
+B<Examples:>
 
   $pd->keymap( keyname    => 'othername',
-               anotherkey => 'someothername' );   
+               anotherkey => 'someothername' );
 
-  $pd->keymap( \%mymap );   
+  $pd->keymap( \%mymap );
 
   # make all tags lower case
-  $pd->keymap( '*'    => sub{ return lc( $_[0];} );   
+  $pd->keymap( '*'    => sub{ return lc( $_[0];} );
 
   # process keys named 'keyname' with a local sub
   $pd->keymap( keyname    => \&my_namer,
 
-  my %kmap_hash = $pd->keymap();   
+  my %kmap_hash = $pd->keymap();
 
-  my $kmap_hashref = $pd->keymap();   
+  my $kmap_hashref = $pd->keymap();
 
 =item B<add_keymap>
 
@@ -1305,11 +1299,11 @@ B<Returns:> [none]
 Adds a series of keyname->elementname mappings (where 'keyname' means the name of a given
 key in the hash and 'elementname' is the name used when firing SAX events for that key).
 
-B<Examples:> 
+B<Examples:>
 
-  $pd->add_keymap( keyname => 'othername' );   
+  $pd->add_keymap( keyname => 'othername' );
 
-  $pd->add_keymap( \%hash_of_mappings );   
+  $pd->add_keymap( \%hash_of_mappings );
 
 =item B<delete_keymap>
 
@@ -1323,33 +1317,33 @@ key in the hash and 'elementname' is the name used when firing SAX events for th
 This method should be used with caution since altering this mapping during processing
 may result in not-well-formed XML.
 
-B<Examples:> 
+B<Examples:>
 
-  $pd->delete_keymap( 'some', 'key', 'names' );   
+  $pd->delete_keymap( 'some', 'key', 'names' );
 
-  $pd->delete_keymap( \@keynames );   
+  $pd->delete_keymap( \@keynames );
 
 =item B<skipelements>
 
 B<Accepts:> A list (or array reference) containing a series of key/element names or [none].
 
 B<Returns:> The current skipelements array (as a plain list, or array reference depending on caller context).
- 
-When called with an array (array reference) as its argument, this method sets/resets the entire internal 
+
+When called with an array (array reference) as its argument, this method sets/resets the entire internal
 skipelement definitions (which determines which keys will not be 'parsed' during processing).
 
 To add new mappings or remove existing ones without having to reset the whole list of
 mappings, see add_skipelements() and delete_skipelements() respectively.
 
-B<Examples:> 
+B<Examples:>
 
   $pd->skipelements( 'elname', 'othername', 'thirdname' );
 
-  $pd->skipelements( \@skip_names );   
+  $pd->skipelements( \@skip_names );
 
-  my @skiplist = $pd->skipelements();   
+  my @skiplist = $pd->skipelements();
 
-  my $skiplist_ref = $pd->skipelements();   
+  my $skiplist_ref = $pd->skipelements();
 
 =item B<add_skipelements>
 
@@ -1359,11 +1353,11 @@ B<Returns:> [none]
 
 Adds a list of key/element names to skip during processing.
 
-B<Examples:> 
+B<Examples:>
 
-  $pd->add_skipelements( 'some', 'key', 'names' );   
+  $pd->add_skipelements( 'some', 'key', 'names' );
 
-  $pd->add_skipelements( \@keynames );   
+  $pd->add_skipelements( \@keynames );
 
 =item B<delete_skipelements>
 
@@ -1373,11 +1367,11 @@ B<Returns:> [none]
 
 Deletes a list of key/element names to skip during processing.
 
-B<Examples:> 
+B<Examples:>
 
-  $pd->delete_skipelements( 'some', 'key', 'names' );   
+  $pd->delete_skipelements( 'some', 'key', 'names' );
 
-  $pd->delete_skipelements( \@keynames );   
+  $pd->delete_skipelements( \@keynames );
 
 =item B<charmap>
 
@@ -1385,7 +1379,7 @@ B<Accepts:> A hash (or hash reference) containing a series of parent/child keyna
 
 B<Returns:> The current charmap hash (as a plain hash, or hash reference depending on caller context).
 
-When called with a hash (hash reference) as its argument, this method sets/resets the entire internal 
+When called with a hash (hash reference) as its argument, this method sets/resets the entire internal
 keyname/elementname->characters children mappings definitions (where 'keyname' means the name of a given
 key in the hash and 'characters children' is list containing the nested keynames that should be passed as
 the text children of the element named 'keyname' (instead of being processed as child elements or attributes).
@@ -1395,15 +1389,15 @@ mappings, see add_charmap() and delete_charmap() respectively.
 
 See CAVEATS for the limitations that relate to this method.
 
-B<Examples:> 
+B<Examples:>
 
   $pd->charmap( elname => ['list', 'of', 'nested', 'keynames' );
 
-  $pd->charmap( \%mymap );   
+  $pd->charmap( \%mymap );
 
-  my %charmap_hash = $pd->charmap();   
+  my %charmap_hash = $pd->charmap();
 
-  my $charmap_hashref = $pd->charmap();   
+  my $charmap_hashref = $pd->charmap();
 
 =item B<add_charmap>
 
@@ -1415,13 +1409,13 @@ Adds a series of parent-key -> child-key relationships that define which of the
 possible child keys will be processed as text children of the created 'parent'
 element.
 
-B<Examples:> 
+B<Examples:>
 
-  $pd->add_charmap( parentname =>  ['list', 'of', 'child', 'keys'] );   
+  $pd->add_charmap( parentname =>  ['list', 'of', 'child', 'keys'] );
 
-  $pd->add_charmap( parentname =>  'childkey' );   
+  $pd->add_charmap( parentname =>  'childkey' );
 
-  $pd->add_charmap( \%parents_and_kids );   
+  $pd->add_charmap( \%parents_and_kids );
 
 =item B<delete_charmap>
 
@@ -1432,13 +1426,13 @@ B<Returns:> [none]
 Deletes a list of parent-key -> child-key relationships from the instance-wide
 hash of "parent->nested names to pass as text children definitions. If you
 need to alter the list of child names (without deleting the parent key) use
-add_charmap() to reset the parent-key's definition. 
+add_charmap() to reset the parent-key's definition.
 
-B<Examples:> 
+B<Examples:>
 
-  $pd->delete_charmap( 'some', 'parent', 'keys' );   
+  $pd->delete_charmap( 'some', 'parent', 'keys' );
 
-  $pd->delete_charmap( \@parentkeynames );   
+  $pd->delete_charmap( \@parentkeynames );
 
 =item B<attrmap>
 
@@ -1446,7 +1440,7 @@ B<Accepts:> A hash (or hash reference) containing a series of parent/child keyna
 
 B<Returns:> The current attrmap hash (as a plain hash, or hash reference depending on caller context).
 
-When called with a hash (hash reference) as its argument, this method sets/resets the entire internal 
+When called with a hash (hash reference) as its argument, this method sets/resets the entire internal
 keyname/elementname->attr children mappings definitions (where 'keyname' means the name of a given
 key in the hash and 'attr children' is list containing the nested keynames that should be passed as
 attributes of the element named 'keyname' (instead of as child elements).
@@ -1456,15 +1450,15 @@ mappings, see add_attrmap() and delete_attrmap() respectively.
 
 See CAVEATS for the limitations that relate to this method.
 
-B<Examples:> 
+B<Examples:>
 
   $pd->attrmap( elname => ['list', 'of', 'nested', 'keynames' );
 
-  $pd->attr( \%mymap );   
+  $pd->attr( \%mymap );
 
-  my %attrmap_hash = $pd->attrmap();   
+  my %attrmap_hash = $pd->attrmap();
 
-  my $attrmap_hashref = $pd->attrmap();   
+  my $attrmap_hashref = $pd->attrmap();
 
 =item B<add_attrmap>
 
@@ -1476,13 +1470,13 @@ Adds a series of parent-key -> child-key relationships that define which of the
 possible child keys will be processed as attributes of the created 'parent'
 element.
 
-B<Examples:> 
+B<Examples:>
 
-  $pd->add_attrmap( parentname =>  ['list', 'of', 'child', 'keys'] );   
+  $pd->add_attrmap( parentname =>  ['list', 'of', 'child', 'keys'] );
 
-  $pd->add_attrmap( parentname =>  'childkey' );   
+  $pd->add_attrmap( parentname =>  'childkey' );
 
-  $pd->add_attrmap( \%parents_and_kids );   
+  $pd->add_attrmap( \%parents_and_kids );
 
 =item B<delete_attrmap>
 
@@ -1493,13 +1487,13 @@ B<Returns:> [none]
 Deletes a list of parent-key -> child-key relationships from the instance-wide
 hash of "parent->nested names to pass as attributes" definitions. If you
 need to alter the list of child names (without deleting the parent key) use
-add_attrmap() to reset the parent-key's definition. 
+add_attrmap() to reset the parent-key's definition.
 
-B<Examples:> 
+B<Examples:>
 
-  $pd->delete_attrmap( 'some', 'parent', 'keys' );   
+  $pd->delete_attrmap( 'some', 'parent', 'keys' );
 
-  $pd->delete_attrmap( \@parentkeynames );   
+  $pd->delete_attrmap( \@parentkeynames );
 
 =item B<bindattrs>
 
@@ -1518,16 +1512,16 @@ and
 are I<not> functionally equivalent.
 
 By default, attributes will be forwarded as I<not> being bound to the namespace
-of the containing element (like the first example above). Setting this 
+of the containing element (like the first example above). Setting this
 option to a true value alters that behavior.
 
-B<Examples:> 
+B<Examples:>
 
   $pd->bindattrs(1); # attributes now bound and prefixed.
 
-  $pd->bindattrs(0); 
+  $pd->bindattrs(0);
 
-  my $is_binding = $pd->bindattrs();  
+  my $is_binding = $pd->bindattrs();
 
 =item B<add_namespace>
 
@@ -1537,9 +1531,9 @@ B<Returns:> [none]
 
 Add a namespace URI/prefix pair to the instance-wide list of XML namespaces
 that will be used while processing. The reserved prefix '#default' can
-be used to set the default (unprefixed) namespace declaration for elements. 
+be used to set the default (unprefixed) namespace declaration for elements.
 
-B<Examples:> 
+B<Examples:>
 
   $pd->add_namespace( uri    => 'http://myhost.tld/myns',
                       prefix => 'myns' );
@@ -1547,7 +1541,7 @@ B<Examples:>
   $pd->add_namespace( uri    => 'http://myhost.tld/default',
                       prefix => '#default' );
 
-See namespacemap() or the namespacemap option detailed in new() for details 
+See namespacemap() or the namespacemap option detailed in new() for details
 about how to associate key/element name with a given namespace.
 
 =item B<namespacemap>
@@ -1555,18 +1549,18 @@ about how to associate key/element name with a given namespace.
 B<Accepts:> A hash (or hash reference) containing a series of uri->key/element name mappings or [none].
 
 B<Returns:> The current namespacemap hash (as a plain hash, or hash reference depending on caller context).
- 
-When called with a hash (hash reference) as its argument, this method sets/resets the entire internal 
+
+When called with a hash (hash reference) as its argument, this method sets/resets the entire internal
 namespace URI->keyname/elementname mappings definitions (where 'keyname' means the name of a given
 key in the hash and 'namespace URI' is a declared namespace URI for the given process).
 
 To add new mappings or remove existing ones without having to reset the whole list of
 mappings, see add_namespacemap() and delete_namespacemap() respectively.
 
-If your are using "stream style" processing, this method should be used with caution since 
+If your are using "stream style" processing, this method should be used with caution since
 altering this mapping during processing may result in not-well-formed XML.
 
-B<Examples:> 
+B<Examples:>
 
 
   $pd->add_namespace( uri    => 'http://myhost.tld/myns',
@@ -1576,11 +1570,11 @@ B<Examples:>
 
   $pd->namespacemap( 'http://myhost.tld/myns' => [ 'list',  'of',  'elnames' ] );
 
-  $pd->namespacemap( \%mymap );   
+  $pd->namespacemap( \%mymap );
 
-  my %nsmap_hash = $pd->namespacemap();   
+  my %nsmap_hash = $pd->namespacemap();
 
-  my $nsmap_hashref = $pd->namespacemap();   
+  my $nsmap_hashref = $pd->namespacemap();
 
 =item B<add_namespacemap>
 
@@ -1591,7 +1585,7 @@ B<Returns:> [none]
 Adds one or more namespace->element/keyname rule to the instance-wide
 list of mappings.
 
-B<Examples:> 
+B<Examples:>
 
   $pd->add_namespacemap( 'http://myhost.tld/foo' => ['some', 'list', 'of' 'keys'] );
 
@@ -1606,30 +1600,30 @@ B<Returns:> [none]
 Removes a list of namespace->element/keyname rules to the instance-wide
 list of mappings.
 
-B<Examples:> 
+B<Examples:>
 
-  $pd->delete_namespacemap( 'foo', 'bar', 'baz' );   
+  $pd->delete_namespacemap( 'foo', 'bar', 'baz' );
 
-  $pd->delete_namespacemap( \@list_of_keynames );   
+  $pd->delete_namespacemap( \@list_of_keynames );
 
 =back
 
 =head1 SAX EVENT METHODS
 
 As a subclass of XML::SAX::Base, XML::Generator::PerlData allows you to
-call all of the SAX event methods directly to insert arbitrary events 
-into the stream as needed. While its use in this way is probably a 
-I<Bad Thing> (and only relevant to "stream style" processing)  it is 
+call all of the SAX event methods directly to insert arbitrary events
+into the stream as needed. While its use in this way is probably a
+I<Bad Thing> (and only relevant to "stream style" processing)  it is
 good to know that such fine-grained access is there if you need it.
 
-With that aside, there may be cases (again, using the "stream style") where 
-you'll want to insert single elements into the output (wrapping each 
-array in series of arrays in single 'record' elements, for example). 
+With that aside, there may be cases (again, using the "stream style") where
+you'll want to insert single elements into the output (wrapping each
+array in series of arrays in single 'record' elements, for example).
 
-The following methods may be used to simplify this task by allowing you 
+The following methods may be used to simplify this task by allowing you
 to pass in simple element name strings and have the result 'just work' without
-requiring an expert knowledge of the Perl SAX2 implementation or 
-forcing you to keep track of things like namespace context. 
+requiring an expert knowledge of the Perl SAX2 implementation or
+forcing you to keep track of things like namespace context.
 
 Take care to ensure that every call to start_tag() has a corresponding call to end_tag()
 or your documents will not be well-formed.
@@ -1642,8 +1636,8 @@ B<Accepts:> A string containing an element name and an optional hash of simple k
 
 B<Returns:> [none]
 
-B<Examples:> 
-  
+B<Examples:>
+
   $pd->start_tag( $element_name );
 
   $pd->start_tag( $element_name, id => $generated_id );
@@ -1656,9 +1650,9 @@ B<Accepts:> A string containing an element name.
 
 B<Returns:> [none]
 
-B<Examples:> 
+B<Examples:>
 
-  $pd->end_tag( $element_name );   
+  $pd->end_tag( $element_name );
 
 =back
 
@@ -1667,14 +1661,14 @@ B<Examples:>
 In general, XML is based on the idea that every bit of data is going to have a
 corresponding name (Elements, Attributes, etc.). While this is not at all a
 Bad Thing, it means that some Perl data structures do not map cleanly onto
-an XML representation. 
+an XML representation.
 
 Consider:
 
   my %hash = ( foo => ['one', 'two', 'three'] );
 
 How do you represent that as XML? Is it three 'foo' elements, or
-is it a 'foo' parent element with 3 mystery children? XML::Generator::PerlData 
+is it a 'foo' parent element with 3 mystery children? XML::Generator::PerlData
 chooses the former. Or:
 
   <foo>one</foo>
@@ -1701,16 +1695,16 @@ Kip Hampton, khampton@totalcinema.com
 
 =head1 COPYRIGHT
 
-(c) Kip Hampton, 2002-2010, All Rights Reserved.
+(c) Kip Hampton, 2002-2014, All Rights Reserved.
 
-=head1 LICENCE
+=head1 LICENSE
 
 This module is released under the Perl Artistic Licence and
 may be redistributed under the same terms as perl itself.
 
 =head1 SEE ALSO
 
-XML::SAX.
+L<XML::SAX>, L<XML::SAX::Writer>.
 
 =cut
 
