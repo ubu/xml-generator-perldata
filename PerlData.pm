@@ -4,6 +4,7 @@ use strict;
 use XML::SAX::Base;
 use vars qw($VERSION @ISA $NS_XMLNS $NS_XML);
 use Data::Dumper;
+use Scalar::Util qw(refaddr);
 # some globals
 $VERSION = '0.91';
 @ISA = qw( XML::SAX::Base );
@@ -47,6 +48,7 @@ sub init {
     $self->{RootName}             ||= 'document';
     $self->{DefaultElementName}   ||= 'default';
     $self->{TokenReplacementChar} ||= '_';
+    $self->{Seen}                 ||= {};
 
     if ( defined $args{namespaces} ) {
         foreach my $uri ( keys( %{$args{namespaces}} )) {
@@ -184,12 +186,23 @@ sub parse_chunk {
     }
 }
 
+# Check if we have visited a given reference before
+sub circular {
+    my($self, $ref) = @_;
+    my $addr = refaddr($ref);
+    my $result = $self->{Seen}->{$addr};
+    $self->{Seen}->{$addr} = 1;
+    return $result;
+}
+
 
 sub hashref2SAX {
     my $self = shift;
     my $hashref= shift;
 
     my $char_data = '';
+
+    return if $self->circular($hashref);
 
 ELEMENT: foreach my $key (keys (%{$hashref} )) {
          my $value = $hashref->{$key};
@@ -254,6 +267,8 @@ sub arrayref2SAX {
     my $arrayref= shift;
     my $passed_name = shift || $self->{_Parents}->[-1];
     my $temp_name = $self->_keymapped_name( $passed_name );
+
+    return if $self->circular($arrayref);
 
     my $element_name;
     my $i;
