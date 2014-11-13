@@ -73,7 +73,6 @@ my %sh2 = (foo  => 'foobie',
 
 package SAXDumper;
 use strict;
-use Data::Dumper;
 
 use vars qw($AUTOLOAD);
     

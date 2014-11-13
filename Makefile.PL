@@ -5,6 +5,6 @@ WriteMakefile(
     'NAME'	=> 'XML::Generator::PerlData',
     'VERSION_FROM' => 'PerlData.pm', # finds $VERSION,
     'PREREQ_PM' => {
-                     'XML::SAX::Base' => 1.02
-                   }
+        'XML::SAX::Base' => 1.02
+    }
 );

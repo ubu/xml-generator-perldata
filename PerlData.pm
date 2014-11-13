@@ -3,8 +3,8 @@ package XML::Generator::PerlData;
 use strict;
 use XML::SAX::Base;
 use vars qw($VERSION @ISA $NS_XMLNS $NS_XML);
-use Data::Dumper;
 use Scalar::Util qw(refaddr);
+
 # some globals
 $VERSION = '0.91';
 @ISA = qw( XML::SAX::Base );
@@ -109,7 +109,6 @@ sub init {
         %skippers = map { $_, 1} @{$args{skipelements}}
     }
 
-    #warn "SKIPPPERS " . Dumper( \%args );
     $self->{Skipelements} = \%skippers;
 
 }

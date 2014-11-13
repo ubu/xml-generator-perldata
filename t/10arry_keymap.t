@@ -35,7 +35,6 @@ ok( $stack[13]->{LocalName} eq 'document' );
 
 package SAXDumper;
 use strict;
-use Data::Dumper;
 
 use vars qw($AUTOLOAD);
     

@@ -95,7 +95,6 @@ sub new {
 
 package SAXDumper;
 use strict;
-use Data::Dumper;
 
 use vars qw($AUTOLOAD);
     
