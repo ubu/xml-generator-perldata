@@ -6,7 +6,7 @@ use vars qw($VERSION @ISA $NS_XMLNS $NS_XML);
 use Scalar::Util qw(refaddr);
 
 # some globals
-$VERSION = '0.91';
+$VERSION = '0.93';
 @ISA = qw( XML::SAX::Base );
 $NS_XML   = 'http://www.w3.org/XML/1998/namespace';
 $NS_XMLNS = 'http://www.w3.org/2000/xmlns/';
