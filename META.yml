@@ -5,6 +5,7 @@ version:      0.91
 version_from: PerlData.pm
 installdirs:  site
 requires:
+    perl:                          5.06
     XML::SAX::Base:                1.02
 
 distribution_type: module
