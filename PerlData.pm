@@ -1,6 +1,7 @@
 package XML::Generator::PerlData;
 
 use strict;
+use warnings;
 use XML::SAX::Base;
 use vars qw($VERSION @ISA $NS_XMLNS $NS_XML);
 use Scalar::Util qw(refaddr);
